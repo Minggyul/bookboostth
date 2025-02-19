@@ -29,10 +29,17 @@
                 return;
             }
 
-            // ✅ 업로드된 파일의 URL 가져오기
+            // ✅ 업로드된 파일의 공개 URL 가져오기
             const { data: publicURL } = supabase.storage.from('uploads').getPublicUrl(filePath);
-            document.getElementById("uploadedImage").src = publicURL.publicUrl;
-            alert("업로드 성공! URL: " + publicURL.publicUrl);
+            
+            if (publicURL) {
+                console.log("업로드된 이미지 URL:", publicURL.publicUrl);
+                document.getElementById("uploadedImage").src = publicURL.publicUrl;
+                document.getElementById("uploadedImage").style.display = "block";
+                alert("업로드 성공! URL: " + publicURL.publicUrl);
+            } else {
+                alert("URL 가져오기 실패");
+            }
         }
     </script>
 </head>
@@ -41,6 +48,6 @@
     <input type="file" id="fileInput" accept="image/*">
     <button onclick="uploadImage()">업로드</button>
     <h3>업로드된 이미지:</h3>
-    <img id="uploadedImage" width="300">
+    <img id="uploadedImage" width="300" style="display: none;">
 </body>
 </html>
