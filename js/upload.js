@@ -6,12 +6,12 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // DOM 요소
 const fileInput = document.getElementById('fileInput');
+const nicknameInput = document.getElementById('nicknameInput');
 const previewImage = document.getElementById('previewImage');
 const previewArea = document.querySelector('.preview-area');
 const loadingSpinner = document.getElementById('loadingSpinner');
 const resultArea = document.getElementById('resultArea');
 const uploadedImage = document.getElementById('uploadedImage');
-const uploadedUrl = document.getElementById('uploadedUrl'); //This element is not used anymore.
 const uploadBtn = document.getElementById('uploadBtn');
 
 // 파일 선택시 미리보기
@@ -77,6 +77,13 @@ dropZone.addEventListener('touchend', () => {
 
 async function uploadImage() {
     const file = fileInput.files[0];
+    const nickname = nicknameInput.value.trim();
+
+    if (!nickname) {
+        showToast('warning', '닉네임을 입력해주세요.');
+        nicknameInput.focus();
+        return;
+    }
 
     if (!file) {
         showToast('warning', '파일을 선택해주세요.');
@@ -89,8 +96,10 @@ async function uploadImage() {
     resultArea.style.display = 'none';
 
     try {
-        // 파일명에 타임스탬프 추가하여 중복 방지
-        const filePath = `uploads/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        // 파일명에 닉네임과 타임스탬프 추가
+        const fileExtension = file.name.split('.').pop();
+        const timestamp = new Date().toISOString().replace(/[:.-]/g, '');
+        const filePath = `uploads/${nickname}-${timestamp}.${fileExtension}`;
 
         // Supabase Storage로 업로드
         const { data, error } = await supabase.storage
@@ -107,14 +116,12 @@ async function uploadImage() {
             .getPublicUrl(filePath);
 
         if (publicUrl) {
-            uploadedImage.src = publicUrl;
-            uploadedImage.style.display = 'block';
-            resultArea.style.display = 'block';
             showToast('success', '이미지가 성공적으로 업로드되었습니다!');
 
-            // 입력 초기화
-            fileInput.value = '';
-            previewArea.style.display = 'none';
+            // 3초 후 창 닫기
+            setTimeout(() => {
+                window.close();
+            }, 3000);
         }
     } catch (error) {
         console.error('업로드 실패:', error);
