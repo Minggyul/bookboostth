@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>이미지 업로드 (Supabase)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script>
+        // ✅ Supabase 설정
+        const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+        const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function uploadImage() {
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("파일을 선택하세요.");
+                return;
+            }
+
+            const filePath = `uploads/${file.name}`;
+            
+            // ✅ Supabase Storage로 업로드
+            const { data, error } = await supabase.storage.from('uploads').upload(filePath, file);
+            
+            if (error) {
+                console.error("업로드 실패:", error);
+                alert("업로드 실패!");
+                return;
+            }
+
+            // ✅ 업로드된 파일의 URL 가져오기
+            const { data: publicURL } = supabase.storage.from('uploads').getPublicUrl(filePath);
+            document.getElementById("uploadedImage").src = publicURL.publicUrl;
+            alert("업로드 성공! URL: " + publicURL.publicUrl);
+        }
+    </script>
+</head>
+<body>
+    <h2>Supabase Storage로 이미지 업로드</h2>
+    <input type="file" id="fileInput" accept="image/*">
+    <button onclick="uploadImage()">업로드</button>
+    <h3>업로드된 이미지:</h3>
+    <img id="uploadedImage" width="300">
+</body>
+</html>
